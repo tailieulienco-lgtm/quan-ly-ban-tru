@@ -1,16 +1,292 @@
-{
-  "name": "quan-ly-ban-tru",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "react": "^18",
-    "react-dom": "^18",
-    "next": "^14.2.0"
+'use client'
+import { useState } from 'react'
+
+export default function QuanLyBanTruApp() {
+  const [activeTab, setActiveTab] = useState<'diem-danh' | 'danh-muc' | 'tong-hop'>('diem-danh')
+  const [classes, setClasses] = useState<string[]>(['Mẫu giáo 3-4 tuổi A3', 'Mẫu giáo 3-4 tuổi A1'])
+  const [students, setStudents] = useState<any[]>([
+    { id: 1, name: 'Đinh Gia Bảo', className: 'Mẫu giáo 3-4 tuổi A3' },
+    { id: 2, name: 'Nguyễn Minh Anh', className: 'Mẫu giáo 3-4 tuổi A3' },
+    { id: 3, name: 'Trần Bảo Nam', className: 'Mẫu giáo 3-4 tuổi A1' },
+  ])
+
+  const [selectedClass, setSelectedClass] = useState<string>('Mẫu giáo 3-4 tuổi A3')
+  const [selectedDate, setSelectedDate] = useState<string>('2026-10-20')
+  const [attendance, setAttendance] = useState<any>({
+    1: { meal: true, english: true, lifeSkills: false },
+    2: { meal: true, english: false, lifeSkills: true },
+  })
+
+  const [newStudentName, setNewStudentName] = useState<string>('')
+  const [newClassName, setNewClassName] = useState<string>('')
+
+  const mealPrice = 25000       
+  const englishPrice = 15000    
+  const lifeSkillsPrice = 20000 
+
+  const handleCheckboxChange = (studentId: number, field: string) => {
+    setAttendance((prev: any) => {
+      const current = prev[studentId] || { meal: true, english: false, lifeSkills: false }
+      return {
+        ...prev,
+        [studentId]: {
+          ...current,
+          [field]: !current[field]
+        }
+      }
+    })
   }
+
+  const handleAddStudent = (e: any) => {
+    e.preventDefault()
+    if (!newStudentName.trim()) return
+    const newId = students.length + 1
+    setStudents([...students, { id: newId, name: newStudentName, className: selectedClass }])
+    setNewStudentName('')
+    alert('Đã thêm học sinh thành công!')
+  }
+
+  const handleAddClass = (e: any) => {
+    e.preventDefault()
+    if (!newClassName.trim() || classes.includes(newClassName)) return
+    setClasses([...classes, newClassName])
+    setNewClassName('')
+    alert('Đã thêm lớp học mới thành công!')
+  }
+
+  const filteredStudents = students.filter(s => s.className === selectedClass)
+
+  return (
+    <main style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'Arial, sans-serif', backgroundColor: '#f9fafb', minHeight: '100vh' }}>
+      <div style={{ backgroundColor: '#db2777', color: 'white', padding: '24px', borderRadius: '16px', marginBottom: '24px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0' }}>🏫 PHẦN MỀM QUẢN LÝ BÁN TRÚ & DỊCH VỤ MẦM NON</h1>
+        <p style={{ margin: 0, fontSize: '14px', color: '#fce7f3' }}>Điểm danh hàng ngày • Tổng hợp học phí • Lưu trữ hồ sơ minh chứng</p>
+      </div>
+
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px' }}>
+        <button 
+          onClick={() => setActiveTab('diem-danh')}
+          style={{ padding: '10px 20px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', border: 'none', backgroundColor: activeTab === 'diem-danh' ? '#db2777' : 'white', color: activeTab === 'diem-danh' ? 'white' : '#374151', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+        >
+          📝 Điểm Danh Hàng Ngày
+        </button>
+        <button 
+          onClick={() => setActiveTab('tong-hop')}
+          style={{ padding: '10px 20px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', border: 'none', backgroundColor: activeTab === 'tong-hop' ? '#db2777' : 'white', color: activeTab === 'tong-hop' ? 'white' : '#374151', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+        >
+          📊 Tổng Hợp Cuối Tháng
+        </button>
+        <button 
+          onClick={() => setActiveTab('danh-muc')}
+          style={{ padding: '10px 20px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', border: 'none', backgroundColor: activeTab === 'danh-muc' ? '#db2777' : 'white', color: activeTab === 'danh-muc' ? 'white' : '#374151', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
+        >
+          ⚙️ Quản Lý Danh Mục
+        </button>
+      </div>
+
+      {activeTab === 'diem-danh' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', gap: '16px', backgroundColor: 'white', padding: '16px', borderRadius: '16px', border: '1px solid #e5e7eb', alignItems: 'center' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Chọn Lớp:</label>
+              <select 
+                value={selectedClass} 
+                onChange={(e) => setSelectedClass(e.target.value)}
+                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: 'white', fontWeight: 'bold' }}
+              >
+                {classes.map((cls, idx) => (
+                  <option key={idx} value={cls}>{cls}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#6b7280', textTransform: 'uppercase', marginBottom: '4px' }}>Chọn Ngày:</label>
+              <input 
+                type="date" 
+                value={selectedDate} 
+                onChange={(e) => setSelectedDate(e.target.value)}
+                style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: 'white', fontWeight: 'bold' }}
+              />
+            </div>
+          </div>
+
+          <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+            <div style={{ padding: '16px', backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontWeight: 'bold', color: '#374151' }}>Danh sách lớp: {selectedClass}</h3>
+              <span style={{ fontSize: '14px', color: '#db2777', fontWeight: 'bold' }}>Tổng số: {filteredStudents.length} học sinh</span>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f3f4f6', color: '#4b5563', fontSize: '14px' }}>
+                  <th style={{ padding: '12px' }}>STT</th>
+                  <th style={{ padding: '12px' }}>Họ và tên học sinh</th>
+                  <th style={{ padding: '12px', textAlign: 'center' }}>Ăn bán trú 🍚</th>
+                  <th style={{ padding: '12px', textAlign: 'center' }}>Học Tiếng Anh 🇬🇧</th>
+                  <th style={{ padding: '12px', textAlign: 'center' }}>Học Kỹ năng sống 🧠</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredStudents.map((student, index) => {
+                  const record = attendance[student.id] || { meal: true, english: false, lifeSkills: false }
+                  return (
+                    <tr key={student.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                      <td style={{ padding: '12px', color: '#6b7280' }}>{index + 1}</td>
+                      <td style={{ padding: '12px', fontWeight: 'bold', color: '#1f2937' }}>{student.name}</td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={record.meal}
+                          onChange={() => handleCheckboxChange(student.id, 'meal')}
+                          style={{ width: '18px', height: '18px', accentColor: '#db2777', cursor: 'pointer' }} 
+                        />
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={record.english}
+                          onChange={() => handleCheckboxChange(student.id, 'english')}
+                          style={{ width: '18px', height: '18px', accentColor: '#db2777', cursor: 'pointer' }} 
+                        />
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={record.lifeSkills}
+                          onChange={() => handleCheckboxChange(student.id, 'lifeSkills')}
+                          style={{ width: '18px', height: '18px', accentColor: '#db2777', cursor: 'pointer' }} 
+                        />
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <button 
+            onClick={() => alert("Đã lưu bảng điểm danh ngày " + selectedDate + " thành công!")}
+            style={{ width: '100%', backgroundColor: '#db2777', color: 'white', fontWeight: 'bold', padding: '14px', borderRadius: '12px', border: 'none', cursor: 'pointer', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+          >
+            💾 LƯU BÁO CÁO ĐIỂM DANH HÔM NAY
+          </button>
+        </div>
+      )}
+
+      {activeTab === 'tong-hop' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold', color: '#1f2937' }}>BẢNG QUYẾT TOÁN THÁNG (Lớp: {selectedClass})</h3>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>Đơn giá: Ăn {mealPrice.toLocaleString()}đ/ngày | Tiếng Anh {englishPrice.toLocaleString()}đ/buổi | KNS {lifeSkillsPrice.toLocaleString()}đ/buổi</p>
+            </div>
+            <button 
+              onClick={() => alert("Đang kết xuất dữ liệu ra file phục vụ lưu hồ sơ...")}
+              style={{ backgroundColor: '#059669', color: 'white', fontWeight: 'bold', padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+            >
+              📥 Xuất File Hồ Sơ
+            </button>
+          </div>
+
+          <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#db2777', color: 'white' }}>
+                  <th style={{ padding: '12px' }}>STT</th>
+                  <th style={{ padding: '12px' }}>Họ và tên</th>
+                  <th style={{ padding: '12px', textAlign: 'center' }}>Số buổi ăn</th>
+                  <th style={{ padding: '12px', textAlign: 'center' }}>Số buổi TA</th>
+                  <th style={{ padding: '12px', textAlign: 'center' }}>Số buổi KNS</th>
+                  <th style={{ padding: '12px', textAlign: 'right' }}>Tiền ăn</th>
+                  <th style={{ padding: '12px', textAlign: 'right' }}>Tiền TA</th>
+                  <th style={{ padding: '12px', textAlign: 'right' }}>Tiền KNS</th>
+                  <th style={{ padding: '12px', textAlign: 'right' }}>Tổng cộng</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredStudents.map((student, idx) => {
+                  const totalMeals = 20
+                  const totalEnglish = 8
+                  const totalLifeSkills = 4
+                  const sumMeal = totalMeals * mealPrice
+                  const sumEnglish = totalEnglish * englishPrice
+                  const sumLifeSkills = totalLifeSkills * lifeSkillsPrice
+                  const grandTotal = sumMeal + sumEnglish + sumLifeSkills
+
+                  return (
+                    <tr key={student.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                      <td style={{ padding: '12px' }}>{idx + 1}</td>
+                      <td style={{ padding: '12px', fontWeight: 'bold', color: '#1f2937' }}>{student.name}</td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>{totalMeals}</td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>{totalEnglish}</td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>{totalLifeSkills}</td>
+                      <td style={{ padding: '12px', textAlign: 'right' }}>{sumMeal.toLocaleString()}đ</td>
+                      <td style={{ padding: '12px', textAlign: 'right' }}>{sumEnglish.toLocaleString()}đ</td>
+                      <td style={{ padding: '12px', textAlign: 'right' }}>{sumLifeSkills.toLocaleString()}đ</td>
+                      <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', color: '#db2777' }}>{grandTotal.toLocaleString()}đ</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'danh-muc' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+          <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e5e7eb' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontWeight: 'bold', color: '#1f2937', fontSize: '16px' }}>👶 Thêm Học Sinh Mới</h3>
+            <form onSubmit={handleAddStudent} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', color: '#4b5563' }}>Họ và tên học sinh:</label>
+                <input 
+                  type="text" 
+                  placeholder="Nhập họ và tên..."
+                  value={newStudentName}
+                  onChange={(e) => setNewStudentName(e.target.value)}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', boxSizing: 'border-box' }}
+                  required
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', color: '#4b5563' }}>Thuộc lớp:</label>
+                <select 
+                  value={selectedClass} 
+                  onChange={(e) => setSelectedClass(e.target.value)}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', backgroundColor: 'white', boxSizing: 'border-box' }}
+                >
+                  {classes.map((cls, idx) => (
+                    <option key={idx} value={cls}>{cls}</option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" style={{ width: '100%', backgroundColor: '#db2777', color: 'white', fontWeight: 'bold', padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer', marginTop: '8px' }}>
+                + Thêm Học Sinh
+              </button>
+            </form>
+          </div>
+
+          <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e5e7eb' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontWeight: 'bold', color: '#1f2937', fontSize: '16px' }}>🏫 Thêm Lớp Học Mới</h3>
+            <form onSubmit={handleAddClass} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px', color: '#4b5563' }}>Tên lớp học:</label>
+                <input 
+                  type="text" 
+                  placeholder="Ví dụ: Mẫu giáo 3-4 tuổi A2"
+                  value={newClassName}
+                  onChange={(e) => setNewClassName(e.target.value)}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', boxSizing: 'border-box' }}
+                  required
+                />
+              </div>
+              <button type="submit" style={{ width: '100%', backgroundColor: '#db2777', color: 'white', fontWeight: 'bold', padding: '10px', borderRadius: '8px', border: 'none', cursor: 'pointer', marginTop: '8px' }}>
+                + Thêm Lớp Học
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </main>
+  )
 }
